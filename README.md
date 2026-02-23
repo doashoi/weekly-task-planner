@@ -2,12 +2,6 @@
 
 > 周任务计划系统 - 实时协作工具
 
-## 项目状态
-
-⚠️ **注意**：此项目已从 GitHub 迁移至阿里云代码托管平台。新的代码仓库地址为：https://codeup.aliyun.com/699c4c08f7b43e00d4208ae7/weekly-task-planner
-
-所有开发活动将在此新仓库中继续进行。
-
 ## 简介
 
 Weekly Task Planner 是一个基于 Web 的任务分配与协作系统，支持多人实时同步编辑任务安排。
@@ -51,7 +45,6 @@ npm start
 ```
 
 ### 部署
-
 详见 [部署文档](#部署指南)
 
 ## 项目结构
@@ -63,11 +56,11 @@ weekly-task-planner/
 ├── script.js           # 前端业务逻辑
 ├── style.css           # 样式文件
 ├── package.json        # 项目依赖
-├── .gitlab-ci.yml      # 阿里云 DevOps CI/CD 配置
 ├── README.md           # 项目说明
-├── MIGRATION_GUIDE.md  # 迁移指南
-├── ALIYUN_CI_CD_SETUP.md # 阿里云CI/CD配置说明
-└── deploy.sh           # 服务器部署脚本
+├── deploy.sh           # 服务器部署脚本
+└── .github/
+    └── workflows/
+        └── deploy.yml  # GitHub Actions 自动部署
 ```
 
 ## 部署指南
@@ -98,17 +91,13 @@ pm2 startup
 
 ### 自动部署
 
-#### 阿里云代码托管平台 CI/CD 配置
+推送到 `main` 分支自动触发部署（需配置 GitHub Secrets）。
 
-1. 在阿里云代码托管平台中创建新项目并推送代码
-2. 在项目设置中配置以下 Variables：
-   - `HOST`: 服务器IP地址
-   - `PORT`: SSH端口（默认22）
-   - `USERNAME`: 服务器用户名
-   - `SSH_PRIVATE_KEY`: 服务器SSH私钥
-3. 推送代码到 `main` 分支将自动触发部署
-
-使用 `.gitlab-ci.yml` 文件进行流水线配置。
+在 GitHub 仓库的 Settings -> Secrets and variables -> Actions 中配置以下变量：
+- `HOST`: 服务器IP地址
+- `PORT`: SSH端口（默认22）
+- `USERNAME`: 服务器用户名
+- `SSH_PRIVATE_KEY`: 服务器SSH私钥
 
 ## 数据存储
 
