@@ -91,7 +91,17 @@ pm2 startup
 
 ### 自动部署
 
-推送到 `main` 分支自动触发部署（需配置 GitHub Secrets）。
+#### 阿里云代码托管平台 CI/CD 配置
+
+1. 在阿里云代码托管平台中创建新项目并推送代码
+2. 在项目设置中配置以下 Variables：
+   - `HOST`: 服务器IP地址
+   - `PORT`: SSH端口（默认22）
+   - `USERNAME`: 服务器用户名
+   - `SSH_PRIVATE_KEY`: 服务器SSH私钥
+3. 推送代码到 `main` 分支将自动触发部署
+
+使用 `.gitlab-ci.yml` 文件进行流水线配置。
 
 ## 数据存储
 

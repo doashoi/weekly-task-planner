@@ -1,0 +1,65 @@
+# 阿里云DevOps流水线配置文件
+# pipeline.yaml - 用于阿里云云效平台
+
+version: '1'
+
+trigger:
+  push:
+    branches:
+      - main
+
+variables:
+  NODE_VERSION: '18'
+  PROJECT_NAME: 'weekly-task-planner'
+  REMOTE_HOST: $HOST
+  REMOTE_PORT: $PORT
+  REMOTE_USER: $USERNAME
+  REMOTE_WORKDIR: '/var/www/task-app'
+
+stages:
+  - name: build
+    jobs:
+      - name: node_build
+        type: build
+        properties:
+          image: node:${NODE_VERSION}
+        commands:
+          - echo "开始构建项目..."
+          - npm install
+          - echo "构建完成"
+
+  - name: deploy
+    jobs:
+      - name: remote_deploy
+        type: deploy
+        dependencies: [build]
+        properties:
+          plugin: remote-exec
+        params:
+          host: ${REMOTE_HOST}
+          port: ${REMOTE_PORT}
+          username: ${REMOTE_USER}
+          private_key: $SSH_PRIVATE_KEY
+          script: |
+            #!/bin/bash
+            cd ${REMOTE_WORKDIR}
+
+            # 拉取最新代码
+            git pull origin main
+
+            # 安装依赖
+            npm install
+
+            # 停止旧服务
+            pm2 stop task-app 2>/dev/null || true
+
+            # 启动服务
+            pm2 start server.js --name task-app --watch
+
+            # 保存PM2配置
+            pm2 save
+
+            # 查看状态
+            pm2 status
+
+            echo "部署完成"

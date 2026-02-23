@@ -1,0 +1,67 @@
+# 阿里云DevOps流水线配置
+# 用于将Weekly Task Planner项目部署到阿里云轻量级服务器
+
+version: 1.0
+
+stages:
+  - build
+  - deploy
+
+variables:
+  NODE_VERSION: "18"
+  APP_DIR: "/var/www/task-app"
+  DEPLOY_HOST: $HOST                   # 从变量中获取主机地址
+  DEPLOY_PORT: $PORT                   # 从变量中获取端口
+  DEPLOY_USER: $USERNAME              # 从变量中获取用户名
+  SSH_PRIVATE_KEY: $SSH_PRIVATE_KEY  # 从变量中获取SSH私钥
+
+# 构建阶段
+build:
+  stage: build
+  image: node:${NODE_VERSION}
+  before_script:
+    - npm install
+  script:
+    - echo "构建项目..."
+    - npm run build || echo "无构建步骤"
+    - echo "构建完成"
+  artifacts:
+    paths:
+      - ./*
+    expire_in: 1 hour
+  only:
+    - main
+
+# 部署阶段
+deploy:
+  stage: deploy
+  before_script:
+    # 安装SSH客户端并配置SSH连接
+    - 'which ssh-agent || ( apt-get update -y && apt-get install openssh-client -y )'
+    - eval $(ssh-agent -s)
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - ssh-keyscan $DEPLOY_HOST >> ~/.ssh/known_hosts
+    - chmod 644 ~/.ssh/known_hosts
+  script:
+    # 通过SSH连接到服务器并执行部署命令
+    - |
+      ssh $DEPLOY_USER@$DEPLOY_HOST -p $DEPLOY_PORT << 'ENDSSH'
+        cd /var/www/task-app
+
+        # 拉取最新代码
+        git pull origin main
+
+        # 安装依赖
+        npm install
+
+        # 重启服务
+        pm2 restart task-app
+
+        # 查看状态
+        pm2 status
+      ENDSSH
+  only:
+    - main
+  when: on_success
