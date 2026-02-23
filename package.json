@@ -13,11 +13,11 @@
     "cors": "^2.8.5"
   },
   "engines": {
-    "node": ">=14.0.0"
+    "node": ">=18.0.0"
   },
   "repository": {
     "type": "git",
-    "url": "https://codeup.aliyun.com/699c4c08f7b43e00d4208ae7/weekly-task-planner.git"
+    "url": "https://github.com/doashoi/weekly-task-planner.git"
   },
   "keywords": [
     "task",
