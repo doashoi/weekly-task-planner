@@ -16,7 +16,22 @@ const io = new Server(server, {
 
 app.use(cors());
 app.use(express.json());
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(__dirname));
+
+// 添加根路径路由，返回index.html
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+// 为所有前端路由返回index.html（用于SPA）
+app.get('*', (req, res) => {
+    // 如果请求的是API路径，则不处理
+    if (req.path.startsWith('/api/') || req.path.startsWith('/socket.io/')) {
+        return next(); // 让其他路由处理器处理
+    }
+    // 否则返回index.html（用于前端路由）
+    res.sendFile(path.join(__dirname, 'index.html'));
+});
 
 const DATA_FILE = path.join(__dirname, 'data.json');
 const PORT = process.env.PORT || 3001;
