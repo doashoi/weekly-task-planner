@@ -16,20 +16,24 @@ const io = new Server(server, {
 
 app.use(cors());
 app.use(express.json());
+
+// 仅提供静态资源，不包括根路径
 app.use(express.static(__dirname));
 
-// 添加根路径路由，返回index.html
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
+// API路由
+app.get('/api/data', (req, res) => {
+    res.json(loadData());
 });
 
-// 为所有前端路由返回index.html（用于SPA）
-app.get('*', (req, res) => {
-    // 如果请求的是API路径，则不处理
-    if (req.path.startsWith('/api/') || req.path.startsWith('/socket.io/')) {
-        return next(); // 让其他路由处理器处理
-    }
-    // 否则返回index.html（用于前端路由）
+app.post('/api/reset', (req, res) => {
+    const defaultData = { ...DEFAULT_DATA };
+    saveData(defaultData);
+    io.emit('sync', defaultData);
+    res.json({ success: true });
+});
+
+// 根路径和其他所有非API路径返回index.html（用于SPA）
+app.get(/^(\/[^.]*|\/*)$/, (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
@@ -86,17 +90,6 @@ io.on('connection', (socket) => {
     socket.on('disconnect', () => {
         console.log('客户端断开:', socket.id);
     });
-});
-
-app.get('/api/data', (req, res) => {
-    res.json(taskData);
-});
-
-app.post('/api/reset', (req, res) => {
-    taskData = { ...DEFAULT_DATA };
-    saveData(taskData);
-    io.emit('sync', taskData);
-    res.json({ success: true });
 });
 
 server.listen(PORT, () => {
